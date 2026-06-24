@@ -3,12 +3,13 @@ const db = window.supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4cWtqbnl4emVyaW9xcG94ZHhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNjM4NDgsImV4cCI6MjA5NzgzOTg0OH0.tQBO2KljUf-_kJJQG4Bv4HBBZ5Leu4q0tvfJEtpX1jE"
 );
 
+
 const overlay = document.getElementById("overlay");
 const app = document.getElementById("app");
 const music = document.getElementById("music");
 
-let userId = localStorage.getItem("userId");
-let username = localStorage.getItem("username");
+let userId = null;
+let username = null;
 
 /* START GAME */
 overlay.addEventListener("click", async () => {
@@ -20,28 +21,49 @@ overlay.addEventListener("click", async () => {
   }, 240);
 
   await initUser();
-  app.style.display = "flex";
-  loadAll();
 
+  app.style.display = "flex";
+
+  loadAll();
   setInterval(loadLeaderboard, 3000);
 });
 
-/* USER SYSTEM */
+/* USER CHECK + CREATE IF NEEDED */
 async function initUser() {
-  if (!userId || !username) {
-    username = prompt("Enter username");
+  const storedId = localStorage.getItem("userId");
+  const storedName = localStorage.getItem("username");
 
-    userId = crypto.randomUUID();
+  if (storedId) {
+    const { data, error } = await db
+      .from("users")
+      .select("*")
+      .eq("id", storedId)
+      .maybeSingle();
 
-    localStorage.setItem("userId", userId);
-    localStorage.setItem("username", username);
+    if (data) {
+      userId = storedId;
+      username = storedName;
+      return;
+    }
 
-    await db.from("users").insert({
-      id: userId,
-      username,
-      clicks: 0
-    });
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
   }
+
+  username = prompt("Enter your username");
+
+  if (!username) username = "Player";
+
+  userId = crypto.randomUUID();
+
+  localStorage.setItem("userId", userId);
+  localStorage.setItem("username", username);
+
+  await db.from("users").insert({
+    id: userId,
+    username,
+    clicks: 0
+  });
 }
 
 /* CLICK SOUND */
@@ -55,7 +77,10 @@ function playClickTone() {
   osc.frequency.value = 520;
 
   gain.gain.setValueAtTime(0.15, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+  gain.gain.exponentialRampToValueAtTime(
+    0.001,
+    ctx.currentTime + 0.12
+  );
 
   osc.connect(gain);
   gain.connect(ctx.destination);
@@ -78,7 +103,9 @@ async function click() {
 
   await db
     .from("stats")
-    .update({ total_clicks: stats.total_clicks + 1 })
+    .update({
+      total_clicks: stats.total_clicks + 1
+    })
     .eq("id", 1);
 
   const { data: user } = await db
@@ -87,25 +114,34 @@ async function click() {
     .eq("id", userId)
     .single();
 
-  await db
-    .from("users")
-    .update({ clicks: user.clicks + 1 })
-    .eq("id", userId);
+  if (user) {
+    await db
+      .from("users")
+      .update({
+        clicks: user.clicks + 1
+      })
+      .eq("id", userId);
+  }
 
   showPlusOne();
   loadCount();
 }
 
-/* +1 ANIMATION */
+/* +1 EFFECT */
 function showPlusOne() {
   const el = document.createElement("div");
   el.className = "plus-one";
   el.textContent = "+1";
 
-  el.style.left = (window.innerWidth / 2 + Math.random() * 80 - 40) + "px";
-  el.style.top = (window.innerHeight / 2) + "px";
+  el.style.left =
+    window.innerWidth / 2 +
+    (Math.random() * 100 - 50) +
+    "px";
+
+  el.style.top = window.innerHeight / 2 + "px";
 
   document.body.appendChild(el);
+
   setTimeout(() => el.remove(), 700);
 }
 
@@ -117,7 +153,8 @@ async function loadCount() {
     .eq("id", 1)
     .single();
 
-  document.getElementById("count").textContent = data.total_clicks;
+  document.getElementById("count").textContent =
+    data.total_clicks;
 }
 
 /* LEADERBOARD */
@@ -144,7 +181,7 @@ async function loadLeaderboard() {
   });
 }
 
-/* LOAD EVERYTHING */
+/* INIT */
 function loadAll() {
   loadCount();
   loadLeaderboard();
