@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clicker</title>
+</head>
+<body>
+
+<h1 id="count">Loading...</h1>
+
+<button id="clickBtn">
+  Click Me
+</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const supabase = window.supabase.createClient(
+  "https://hxqkjnyxzerioqpoxdxo.supabase.co/",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4cWtqbnl4emVyaW9xcG94ZHhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNjM4NDgsImV4cCI6MjA5NzgzOTg0OH0.tQBO2KljUf-_kJJQG4Bv4HBBZ5Leu4q0tvfJEtpX1jE"
+);
+
+let userId = localStorage.getItem("userId");
+let username = localStorage.getItem("username");
+
+async function setupUser() {
+
+  if (!userId) {
+
+    username = prompt("Choose a username");
+
+    userId = crypto.randomUUID();
+
+    localStorage.setItem("userId", userId);
+    localStorage.setItem("username", username);
+
+    await supabase
+      .from("users")
+      .insert({
+        id: userId,
+        username: username
+      });
+
+  }
+
+}
+
+async function loadCount() {
+
+  const { data } = await supabase
+    .from("stats")
+    .select("total_clicks")
+    .eq("id", 1)
+    .single();
+
+  document.getElementById("count")
+    .textContent = data.total_clicks;
+
+}
+
+async function click() {
+
+  const { data: stats } = await supabase
+    .from("stats")
+    .select("total_clicks")
+    .eq("id", 1)
+    .single();
+
+  await supabase
+    .from("stats")
+    .update({
+      total_clicks: stats.total_clicks + 1
+    })
+    .eq("id", 1);
+
+  const { data: user } = await supabase
+    .from("users")
+    .select("clicks")
+    .eq("id", userId)
+    .single();
+
+  await supabase
+    .from("users")
+    .update({
+      clicks: user.clicks + 1
+    })
+    .eq("id", userId);
+
+  loadCount();
+
+}
+
+document
+  .getElementById("clickBtn")
+  .addEventListener("click", click);
+
+setupUser().then(loadCount);
+
+</script>
+
+</body>
+</html>
