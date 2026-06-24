@@ -1,13 +1,13 @@
 body {
   margin: 0;
-  font-family: system-ui, Arial;
+  font-family: system-ui;
   background: radial-gradient(circle at top, #0b1220, #020617);
   color: white;
   overflow: hidden;
 }
 
 .app {
-  display: flex;
+  display: none;
   gap: 80px;
   justify-content: center;
   align-items: center;
@@ -28,8 +28,6 @@ body {
   font-size: 72px;
   text-align: center;
   margin-bottom: 30px;
-  letter-spacing: 1px;
-  animation: fadeIn 0.6s ease;
 }
 
 .click-btn {
@@ -41,43 +39,28 @@ body {
   font-size: 22px;
   color: white;
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  transition: transform 0.08s ease;
   box-shadow: 0 20px 60px rgba(59,130,246,0.35);
-  transition: transform 0.08s ease, box-shadow 0.2s ease;
-}
-
-.click-btn:hover {
-  transform: scale(1.04);
 }
 
 .click-btn:active {
   transform: scale(0.9);
-  box-shadow: 0 10px 30px rgba(59,130,246,0.25);
 }
 
 .leaderboard {
   width: 320px;
 }
 
-.leaderboard h2 {
-  margin-bottom: 20px;
-}
-
 .leaderboard-item {
   display: flex;
   justify-content: space-between;
   padding: 10px 0;
-  opacity: 0.9;
-  transition: transform 0.2s ease;
-}
-
-.leaderboard-item:hover {
-  transform: translateX(6px);
 }
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.94);
+  background: rgba(0,0,0,0.95);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -90,7 +73,6 @@ body {
   border-radius: 20px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
-  animation: popIn 0.6s ease;
 }
 
 .plus-one {
@@ -98,20 +80,9 @@ body {
   color: #22c55e;
   font-size: 20px;
   animation: floatUp 0.7s ease-out forwards;
-  pointer-events: none;
 }
 
 @keyframes floatUp {
   from { transform: translateY(0); opacity: 1; }
   to { transform: translateY(-60px); opacity: 0; }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes popIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
 }
