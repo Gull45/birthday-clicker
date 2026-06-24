@@ -1,98 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Clicker</title>
+  <title>bday clicker</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1 id="count">Loading...</h1>
+<div id="overlay" class="overlay">
+  <div class="overlay-box">
+    <h1>interaction required</h1>
+    <p>they be music here</p>
+  </div>
+</div>
 
-<button id="clickBtn">Click</button>
+<audio id="music" src="music.mp3" loop></audio>
+
+<div class="app">
+
+  <div class="panel">
+    <div id="count" class="count">0</div>
+
+    <button id="clickBtn" class="click-btn">🎉</button>
+  </div>
+
+  <div class="panel leaderboard">
+    <h2>global leaderboard</h2>
+    <div id="leaderboard"></div>
+  </div>
+
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-
-const db = window.supabase.createClient(
-  "https://hxqkjnyxzerioqpoxdxo.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4cWtqbnl4emVyaW9xcG94ZHhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNjM4NDgsImV4cCI6MjA5NzgzOTg0OH0.tQBO2KljUf-_kJJQG4Bv4HBBZ5Leu4q0tvfJEtpX1jE"
-);
-
-let userId = localStorage.getItem("userId");
-let username = localStorage.getItem("username");
-
-async function setupUser() {
-  if (!userId) {
-    username = prompt("Choose a username");
-
-    if (!username) return;
-
-    userId = crypto.randomUUID();
-
-    localStorage.setItem("userId", userId);
-    localStorage.setItem("username", username);
-
-    await db.from("users").insert({
-      id: userId,
-      username: username
-    });
-  }
-}
-
-async function loadCount() {
-  const { data, error } = await db
-    .from("stats")
-    .select("total_clicks")
-    .eq("id", 1)
-    .single();
-
-  if (error) {
-    console.log(error);
-    return;
-  }
-
-  document.getElementById("count").textContent =
-    data.total_clicks;
-}
-
-async function click() {
-  const { data: stats } = await db
-    .from("stats")
-    .select("total_clicks")
-    .eq("id", 1)
-    .single();
-
-  await db
-    .from("stats")
-    .update({
-      total_clicks: stats.total_clicks + 1
-    })
-    .eq("id", 1);
-
-  const { data: user } = await db
-    .from("users")
-    .select("clicks")
-    .eq("id", userId)
-    .single();
-
-  await db
-    .from("users")
-    .update({
-      clicks: user.clicks + 1
-    })
-    .eq("id", userId);
-
-  loadCount();
-}
-
-document
-  .getElementById("clickBtn")
-  .addEventListener("click", click);
-
-setupUser().then(loadCount);
-
-</script>
+<script src="app.js"></script>
 
 </body>
 </html>

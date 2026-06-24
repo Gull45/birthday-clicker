@@ -1,0 +1,96 @@
+body {
+  margin: 0;
+  font-family: system-ui, Arial;
+  background: radial-gradient(circle at top, #111827, #020617);
+  color: white;
+  overflow: hidden;
+}
+
+.app {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 40px;
+}
+
+.panel {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 30px;
+  backdrop-filter: blur(10px);
+}
+
+.count {
+  font-size: 60px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.click-btn {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: white;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  transition: transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 10px 40px rgba(59,130,246,0.3);
+}
+
+.click-btn:hover {
+  transform: scale(1.03);
+}
+
+.click-btn:active {
+  transform: scale(0.92);
+}
+
+.leaderboard {
+  width: 260px;
+}
+
+.leaderboard h2 {
+  margin-top: 0;
+}
+
+.leaderboard-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  opacity: 0.9;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.overlay-box {
+  text-align: center;
+  padding: 30px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.plus-one {
+  position: fixed;
+  color: #22c55e;
+  font-size: 18px;
+  animation: floatUp 0.6s ease-out forwards;
+}
+
+@keyframes floatUp {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-50px); opacity: 0; }
+}
