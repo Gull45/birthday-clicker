@@ -50,9 +50,9 @@ async function initUser() {
     localStorage.removeItem("username");
   }
 
-  username = prompt("Enter your username");
+  username = prompt("Enter your username, Y̲O̲U̲ ̲W̲I̲L̲L̲ ̲N̲O̲T̲ ̲B̲E̲ ̲A̲B̲L̲E̲ ̲T̲O̲ ̲C̲H̲A̲N̲G̲E̲ ̲I̲T̲!̲!̲!̲!̲!̲!̲!̲");
 
-  if (!username) username = "Player";
+  if (!username) username = "removemefromsupabase";
 
   userId = crypto.randomUUID();
 
