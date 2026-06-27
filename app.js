@@ -37,7 +37,7 @@ async function revealLeaderboard() {
   const { data: players, error } = await db
     .from("users")
     .select("username, clicks")
-    .order("clicks", { ascending: false });
+    .order("clicks", { ascending: true });
 
   if (error) {
     console.error(error);
