@@ -1,88 +1,68 @@
-body {
-  margin: 0;
-  font-family: system-ui;
-  background: radial-gradient(circle at top, #0b1220, #020617);
-  color: white;
-  overflow: hidden;
+body{
+    margin:0;
+    background:#050816;
+    color:white;
+    font-family:system-ui,sans-serif;
+    overflow:hidden;
 }
 
-.app {
-  display: none;
-  gap: 80px;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  padding: 60px;
+.overlay{
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#050816;
+    z-index:5;
 }
 
-.panel {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 20px;
-  padding: 50px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 20px 80px rgba(0,0,0,0.4);
+.overlay-card{
+    text-align:center;
+    padding:48px;
+    border-radius:24px;
+    background:rgba(255,255,255,.06);
+    backdrop-filter:blur(16px);
 }
 
-.count {
-  font-size: 72px;
-  text-align: center;
-  margin-bottom: 30px;
+.hidden{
+    display:none;
 }
 
-.click-btn {
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  font-size: 22px;
-  color: white;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  transition: transform 0.08s ease;
-  box-shadow: 0 20px 60px rgba(59,130,246,0.35);
+.results{
+    width:min(900px,90vw);
+    margin:80px auto;
 }
 
-.click-btn:active {
-  transform: scale(0.9);
+.player{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:22px 28px;
+    margin-bottom:18px;
+
+    background:rgba(255,255,255,.05);
+    border-radius:18px;
+
+    opacity:0;
+    transform:translateY(30px);
 }
 
-.leaderboard {
-  width: 320px;
+.player.show{
+    opacity:1;
+    transform:translateY(0);
+    transition:.45s;
 }
 
-.leaderboard-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
+.place{
+    width:70px;
+    font-weight:700;
 }
 
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.95);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
+.name{
+    flex:1;
 }
 
-.overlay-box {
-  text-align: center;
-  padding: 40px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-.plus-one {
-  position: fixed;
-  color: #22c55e;
-  font-size: 20px;
-  animation: floatUp 0.7s ease-out forwards;
-}
-
-@keyframes floatUp {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(-60px); opacity: 0; }
+.score{
+    font-size:30px;
+    font-weight:700;
 }

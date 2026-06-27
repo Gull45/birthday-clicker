@@ -3,186 +3,109 @@ const db = window.supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4cWtqbnl4emVyaW9xcG94ZHhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNjM4NDgsImV4cCI6MjA5NzgzOTg0OH0.tQBO2KljUf-_kJJQG4Bv4HBBZ5Leu4q0tvfJEtpX1jE"
 );
 
-
 const overlay = document.getElementById("overlay");
-const app = document.getElementById("app");
+const results = document.getElementById("results");
+
 const music = document.getElementById("music");
+const tickSound = document.getElementById("tick");
 
-let userId = null;
-let username = null;
-
-/* START GAME */
 overlay.addEventListener("click", async () => {
-  overlay.style.display = "none";
 
-  setTimeout(() => {
-    music.volume = 0.3;
+    overlay.style.pointerEvents = "none";
+
+    music.volume = 0.35;
     music.play();
-  }, 240);
 
-  await initUser();
+    await sleep(1300);
 
-  app.style.display = "flex";
+    overlay.style.opacity = "0";
 
-  loadAll();
-  setInterval(loadLeaderboard, 3000);
+    await sleep(600);
+
+    overlay.remove();
+
+    results.classList.remove("hidden");
+
+    await revealLeaderboard();
+
 });
 
-/* USER CHECK + CREATE IF NEEDED */
-async function initUser() {
-  const storedId = localStorage.getItem("userId");
-  const storedName = localStorage.getItem("username");
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-  if (storedId) {
-    const { data, error } = await db
-      .from("users")
-      .select("*")
-      .eq("id", storedId)
-      .maybeSingle();
+async function revealLeaderboard() {
 
-    if (data) {
-      userId = storedId;
-      username = storedName;
-      return;
+    const { data: players, error } = await db
+        .from("users")
+        .select("username, clicks")
+        .order("clicks", { ascending: false });
+
+    if (error) {
+        console.error(error);
+        return;
     }
 
-    localStorage.removeItem("userId");
-    localStorage.removeItem("username");
-  }
+    results.innerHTML = "";
 
-  username = prompt("Enter your username, Y̲O̲U̲ ̲W̲I̲L̲L̲ ̲N̲O̲T̲ ̲B̲E̲ ̲A̲B̲L̲E̲ ̲T̲O̲ ̲C̲H̲A̲N̲G̲E̲ ̲I̲T̲!̲!̲!̲!̲!̲!̲!̲");
+    for (let i = 0; i < players.length; i++) {
 
-  if (!username) username = "removemefromsupabase";
+        const player = players[i];
 
-  userId = crypto.randomUUID();
+        const row = document.createElement("div");
+        row.className = "player";
 
-  localStorage.setItem("userId", userId);
-  localStorage.setItem("username", username);
+        const place = document.createElement("div");
+        place.className = "place";
+        place.textContent = "#" + (i + 1);
 
-  await db.from("users").insert({
-    id: userId,
-    username,
-    clicks: 0
-  });
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = player.username;
+
+        const score = document.createElement("div");
+        score.className = "score";
+        score.textContent = "0";
+
+        row.appendChild(place);
+        row.appendChild(name);
+        row.appendChild(score);
+
+        results.appendChild(row);
+
+        requestAnimationFrame(() => {
+            row.classList.add("show");
+        });
+
+        await animateScore(score, player.clicks);
+
+        await sleep(180);
+    }
+
 }
 
-/* CLICK SOUND */
-function playClickTone() {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+async function animateScore(element, target) {
 
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
+    let current = 0;
 
-  osc.type = "sine";
-  osc.frequency.value = 520;
+    const step = Math.max(1, Math.ceil(target / 90));
 
-  gain.gain.setValueAtTime(0.15, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(
-    0.001,
-    ctx.currentTime + 0.12
-  );
+    while (current < target) {
 
-  osc.connect(gain);
-  gain.connect(ctx.destination);
+        current += step;
 
-  osc.start();
-  osc.stop(ctx.currentTime + 0.12);
-}
+        if (current > target)
+            current = target;
 
-/* CLICK */
-document.getElementById("clickBtn").addEventListener("click", click);
+        element.textContent = current.toLocaleString();
 
-async function click() {
-  playClickTone();
+        const s = tickSound.cloneNode();
 
-  const { data: stats } = await db
-    .from("stats")
-    .select("total_clicks")
-    .eq("id", 1)
-    .single();
+        s.volume = 0.18;
 
-  await db
-    .from("stats")
-    .update({
-      total_clicks: stats.total_clicks + 1
-    })
-    .eq("id", 1);
+        s.play().catch(() => {});
 
-  const { data: user } = await db
-    .from("users")
-    .select("clicks")
-    .eq("id", userId)
-    .single();
+        await sleep(18);
+    }
 
-  if (user) {
-    await db
-      .from("users")
-      .update({
-        clicks: user.clicks + 1
-      })
-      .eq("id", userId);
-  }
-
-  showPlusOne();
-  loadCount();
-}
-
-/* +1 EFFECT */
-function showPlusOne() {
-  const el = document.createElement("div");
-  el.className = "plus-one";
-  el.textContent = "+1";
-
-  el.style.left =
-    window.innerWidth / 2 +
-    (Math.random() * 100 - 50) +
-    "px";
-
-  el.style.top = window.innerHeight / 2 + "px";
-
-  document.body.appendChild(el);
-
-  setTimeout(() => el.remove(), 700);
-}
-
-/* LOAD COUNT */
-async function loadCount() {
-  const { data } = await db
-    .from("stats")
-    .select("total_clicks")
-    .eq("id", 1)
-    .single();
-
-  document.getElementById("count").textContent =
-    data.total_clicks;
-}
-
-/* LEADERBOARD */
-async function loadLeaderboard() {
-  const { data } = await db
-    .from("users")
-    .select("*")
-    .order("clicks", { ascending: false })
-    .limit(10);
-
-  const board = document.getElementById("leaderboard");
-  board.innerHTML = "";
-
-  data.forEach((u, i) => {
-    const row = document.createElement("div");
-    row.className = "leaderboard-item";
-
-    row.innerHTML = `
-      <span>${i + 1}. ${u.username}</span>
-      <span>${u.clicks}</span>
-    `;
-
-    board.appendChild(row);
-  });
-}
-
-/* INIT */
-function loadAll() {
-  loadCount();
-  loadLeaderboard();
 }
