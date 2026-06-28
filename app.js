@@ -41,11 +41,11 @@ overlay.addEventListener("click", async () => {
         console.error(e);
     }
 
-    await sleep(1000);
+    await sleep(300);
 
     overlay.style.opacity = "0";
 
-    await sleep(600);
+    await sleep(300);
 
     overlay.remove();
 
