@@ -1,145 +1,318 @@
+// ==========================================
+// Supabase
+// ==========================================
+
 const db = window.supabase.createClient(
-  "https://hxqkjnyxzerioqpoxdxo.supabase.co/",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4cWtqbnl4emVyaW9xcG94ZHhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNjM4NDgsImV4cCI6MjA5NzgzOTg0OH0.tQBO2KljUf-_kJJQG4Bv4HBBZ5Leu4q0tvfJEtpX1jE"
+    "YOUR_PROJECT_URL",
+    "YOUR_ANON_KEY"
 );
+
+// ==========================================
+// Elements
+// ==========================================
 
 const overlay = document.getElementById("overlay");
 const results = document.getElementById("results");
 
 const music = document.getElementById("music");
-const tickSound = document.getElementById("tick");
+const tickTemplate = document.getElementById("tick");
+
+// ==========================================
+// Helpers
+// ==========================================
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// ==========================================
+// Intro Sequence
+// ==========================================
+
 overlay.addEventListener("click", async () => {
-  overlay.style.pointerEvents = "none";
 
-  music.volume = 0.35;
-  music.play();
+    overlay.style.pointerEvents = "none";
 
-  await sleep(300);
+    music.volume = 0.35;
 
-  overlay.style.opacity = "0";
+    try {
+        await music.play();
+    } catch (e) {
+        console.error(e);
+    }
 
-  await sleep(600);
+    await sleep(1000);
 
-  overlay.remove();
+    overlay.style.opacity = "0";
 
-  results.classList.remove("hidden");
+    await sleep(600);
 
-  await revealLeaderboard();
+    overlay.remove();
+
+    results.classList.remove("hidden");
+
+    await revealLeaderboard();
+
 });
+
+// ==========================================
+// Leaderboard
+// ==========================================
 
 async function revealLeaderboard() {
 
-  const { data: players, error } = await db
-    .from("users")
-    .select("username, clicks")
-    .order("clicks", { ascending: false });
+    const { data: players, error } = await db
+        .from("users")
+        .select("username, clicks")
+        .order("clicks", {
+            ascending: false
+        });
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+    if (error) {
+        console.error(error);
+        return;
+    }
 
+    if (!players || players.length === 0)
+        return;
 
-  // Reveal from last to second place first
-  results.innerHTML = "";
+    results.innerHTML = "";
 
-  for (let i = players.length - 1; i >= 1; i--) {
+    const cards = [];
 
-    const player = players[i];
+    // Create every card in FINAL order.
 
-    const row = createPlayerCard(
-      players.length - i,
-      player.username,
-      player.clicks,
-      false
+    for (let i = 0; i < players.length; i++) {
+
+        const card = document.createElement("div");
+
+        card.className =
+            i === 0
+                ? "player winner"
+                : "player";
+
+        card.style.opacity = "0";
+
+        card.style.transform =
+            "translateY(30px) scale(.95)";
+
+        card.innerHTML = `
+            <div class="place">
+                #${i + 1}
+            </div>
+
+            <div class="name">
+
+                ${
+                    i === 0
+                        ? `<div class="winner-title">🏆 WINNER</div>`
+                        : ""
+                }
+
+                <div>${players[i].username}</div>
+
+            </div>
+
+            <div class="score">
+                0
+            </div>
+        `;
+
+        results.appendChild(card);
+
+        cards.push({
+
+            card,
+
+            score:
+                card.querySelector(".score"),
+
+            clicks:
+                players[i].clicks,
+
+            winner:
+                i === 0
+
+        });
+
+    }
+
+    // Reveal from LAST place upward.
+
+    for (
+        let i = cards.length - 1;
+        i >= 1;
+        i--
+    ) {
+
+        cards[i].card.style.opacity = "1";
+
+        cards[i].card.style.transform =
+            "translateY(0) scale(1)";
+
+        await animateScore(
+
+            cards[i].score,
+
+            cards[i].clicks,
+
+            false
+
+        );
+
+        await sleep(180);
+
+    }
+
+    // Dramatic pause.
+
+    await sleep(900);
+
+    // Winner reveal.
+
+    cards[0].card.style.opacity = "1";
+
+    cards[0].card.style.transform =
+        "translateY(0) scale(1.08)";
+
+    cards[0].card.classList.add(
+        "winner-show"
     );
 
-    results.appendChild(row.card);
+    await animateScore(
 
-    requestAnimationFrame(() => {
-      row.card.classList.add("show");
-    });
+        cards[0].score,
 
-    await animateScore(row.score, player.clicks);
+        cards[0].clicks,
 
-    await sleep(180);
-  }
+        true
 
-  await sleep(1000);
-    // WINNER (first place)
+    );
 
-  const winner = players[0];
+}
+// ==========================================
+// Score Animation
+// ==========================================
 
-  const row = createPlayerCard(
-    1,
-    winner.username,
-    winner.clicks,
-    true
-  );
+async function animateScore(
+    element,
+    target,
+    winner
+) {
 
-  results.prepend(row.card);
+    let current = 0;
 
-  requestAnimationFrame(() => {
-    row.card.classList.add("winner-show");
-  });
+    // Keep the animation around 2 seconds
+    // regardless of the score.
 
-  await animateScore(row.score, winner.clicks);
+    const frames = winner ? 140 : 90;
+
+    const step = Math.max(
+        1,
+        Math.ceil(target / frames)
+    );
+
+    while (current < target) {
+
+        current += step;
+
+        if (current > target)
+            current = target;
+
+        element.textContent =
+            current.toLocaleString();
+
+        playTick();
+
+        await sleep(
+            winner
+                ? 18
+                : 14
+        );
+
+    }
+
 }
 
-function createPlayerCard(place, username, clicks, winner) {
+// ==========================================
+// Tick Sound
+// ==========================================
 
-  const card = document.createElement("div");
+function playTick() {
 
-  card.className = winner ? "player winner" : "player";
+    const sound = tickTemplate.cloneNode();
 
-  const placeDiv = document.createElement("div");
-  placeDiv.className = "place";
-  placeDiv.textContent = "#" + place;
+    sound.volume = 0.12;
 
-  const nameDiv = document.createElement("div");
-  nameDiv.className = "name";
+    sound.play().catch(() => {});
 
-  if (winner) {
-    nameDiv.innerHTML = `
-      <div class="winner-title">🏆 WINNER</div>
-      <div>${username}</div>
-    `;
-  } else {
-    nameDiv.textContent = username;
-  }
-
-  const scoreDiv = document.createElement("div");
-  scoreDiv.className = "score";
-  scoreDiv.textContent = "0";
-
-  card.append(placeDiv, nameDiv, scoreDiv);
-
-  return { card, score: scoreDiv };
 }
 
-async function animateScore(element, target) {
+// ==========================================
+// Winner Glow Pulse
+// ==========================================
 
-  let current = 0;
+function pulseWinner(card) {
 
-  const step = Math.max(1, Math.ceil(target / 90));
+    let grow = true;
 
-  while (current < target) {
+    setInterval(() => {
 
-    current += step;
+        if (grow) {
 
-    if (current > target) current = target;
+            card.style.transform =
+                "translateY(0) scale(1.10)";
 
-    element.textContent = current.toLocaleString();
+        } else {
 
-    const s = tickSound.cloneNode();
-    s.volume = 0.18;
-    s.play().catch(() => {});
+            card.style.transform =
+                "translateY(0) scale(1.06)";
 
-    await sleep(18);
-  }
+        }
+
+        grow = !grow;
+
+    }, 900);
+
 }
+
+// ==========================================
+// Winner Entrance
+// ==========================================
+
+function celebrateWinner() {
+
+    const winner =
+        document.querySelector(".winner");
+
+    if (!winner)
+        return;
+
+    pulseWinner(winner);
+
+}
+
+// ==========================================
+// Auto-start celebration
+// ==========================================
+
+const observer = new MutationObserver(() => {
+
+    const winner =
+        document.querySelector(".winner-show");
+
+    if (winner) {
+
+        celebrateWinner();
+
+        observer.disconnect();
+
+    }
+
+});
+
+observer.observe(results, {
+    childList: true,
+    subtree: true,
+    attributes: true
+});
