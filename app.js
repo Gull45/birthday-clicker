@@ -19,7 +19,7 @@ overlay.addEventListener("click", async () => {
   music.volume = 0.35;
   music.play();
 
-  await sleep(1000);
+  await sleep(300);
 
   overlay.style.opacity = "0";
 
