@@ -105,7 +105,7 @@ async function revealLeaderboard() {
 
                 ${
                     i === 0
-                        ? `<div class="winner-title">🏆 WINNER</div>`
+                        ? `<div class="winner-title">🏆</div>`
                         : ""
                 }
 
